@@ -152,7 +152,7 @@ var nodebotui = (function () {
     Led: { 
       min: 0, 
       max: 255,
-      _methods: ['on', 'off', 'toggle'] //, 'brightness', 'pulse', 'fade', 'fadeIn', 'fadeOut', 'strobe', 'stop']
+      _methods: ['on', 'off', 'toggle', 'strobe', 'stop', 'pulse'] //, 'brightness', fade', 'fadeIn', 'fadeOut']
     },
     Servo: {
       min: 0,
@@ -187,7 +187,24 @@ var nodebotui = (function () {
       if (socket) {
         socket.emit('call', { "board": this._board, "device": this.id, "method": "toggle" });
       }
-      //this._update(false);
+    },
+    
+    stop: function() {
+      if (socket) {
+        socket.emit('call', { "board": this._board, "device": this.id, "method": "stop" });
+      }
+    },
+    
+    pulse: function() {
+      if (socket) {
+        socket.emit('call', { "board": this._board, "device": this.id, "method": "pulse", params: this.phase });   
+      } 
+    },
+    
+    strobe: function() {
+      if (socket) {
+        socket.emit('call', { "board": this._board, "device": this.id, "method": "strobe", params: this.phase });   
+      } 
     },
     
     move: function(value) {
@@ -301,7 +318,23 @@ var nodebotui = (function () {
             case 'toggle':
               input.toggle();
               break;
-          
+              
+            case 'strobe':
+              if (el.checked) {
+                input.strobe(this.phase);
+              } else {
+                input.stop();
+              }
+              break;
+              
+            case 'pulse':
+              if (el.checked) {
+                input.pulse(this.phase);
+              } else {
+                input.stop();
+              }
+              break;
+            
             default:
               if (el.checked) {
                 input.on();
