@@ -152,7 +152,7 @@ var nodebotui = (function () {
     Led: { 
       min: 0, 
       max: 255,
-      _methods: ['on', 'off'] //, 'toggle', 'brightness', 'pulse', 'fade', 'fadeIn', 'fadeOut', 'strobe', 'stop']
+      _methods: ['on', 'off', 'toggle'] //, 'brightness', 'pulse', 'fade', 'fadeIn', 'fadeOut', 'strobe', 'stop']
     },
     Servo: {
       min: 0,
@@ -181,6 +181,13 @@ var nodebotui = (function () {
         socket.emit('call', { "board": this._board, "device": this.id, "method": "off" });
       }
       this._update(false);
+    },
+    
+    toggle: function() {
+      if (socket) {
+        socket.emit('call', { "board": this._board, "device": this.id, "method": "toggle" });
+      }
+      //this._update(false);
     },
     
     move: function(value) {
@@ -288,10 +295,19 @@ var nodebotui = (function () {
     checkbox: {
       _listen: function(el, input) {
         el.addEventListener('change', function() { 
-          if (el.checked) {
-            input.on();
-          } else {
-            input.off(); 
+          
+          switch (input.mode) {
+          
+            case 'toggle':
+              input.toggle();
+              break;
+          
+            default:
+              if (el.checked) {
+                input.on();
+              } else {
+                input.off(); 
+              }
           }
         });
       },
