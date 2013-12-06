@@ -10,7 +10,7 @@
     Led: { 
       min: 0, 
       max: 255,
-      _methods: ['on', 'off'] //, 'toggle', 'brightness', 'pulse', 'fade', 'fadeIn', 'fadeOut', 'strobe', 'stop']
+      _methods: ['on', 'off', 'toggle'] //, 'brightness', 'pulse', 'fade', 'fadeIn', 'fadeOut', 'strobe', 'stop']
     },
     Servo: {
       min: 0,

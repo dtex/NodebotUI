@@ -18,6 +18,12 @@
       this._update(false);
     },
     
+    toggle: function() {
+      if (socket) {
+        socket.emit('call', { "board": this._board, "device": this.id, "method": "toggle" });
+      }
+    },
+    
     move: function(value) {
       
       // If no value was passed, then read the value from the HTML

@@ -14,10 +14,19 @@
     checkbox: {
       _listen: function(el, input) {
         el.addEventListener('change', function() { 
-          if (el.checked) {
-            input.on();
-          } else {
-            input.off(); 
+          
+          switch (input.mode) {
+          
+            case 'toggle':
+              input.toggle();
+              break;
+          
+            default:
+              if (el.checked) {
+                input.on();
+              } else {
+                input.off(); 
+              }
           }
         });
       },
