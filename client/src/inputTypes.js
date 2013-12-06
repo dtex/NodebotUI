@@ -20,7 +20,23 @@
             case 'toggle':
               input.toggle();
               break;
-          
+              
+            case 'strobe':
+              if (el.checked) {
+                input.strobe(this.phase);
+              } else {
+                input.stop();
+              }
+              break;
+              
+            case 'pulse':
+              if (el.checked) {
+                input.pulse(this.phase);
+              } else {
+                input.stop();
+              }
+              break;
+            
             default:
               if (el.checked) {
                 input.on();

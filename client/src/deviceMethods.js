@@ -24,6 +24,24 @@
       }
     },
     
+    stop: function() {
+      if (socket) {
+        socket.emit('call', { "board": this._board, "device": this.id, "method": "stop" });
+      }
+    },
+    
+    pulse: function() {
+      if (socket) {
+        socket.emit('call', { "board": this._board, "device": this.id, "method": "pulse", params: this.phase });   
+      } 
+    },
+    
+    strobe: function() {
+      if (socket) {
+        socket.emit('call', { "board": this._board, "device": this.id, "method": "strobe", params: this.phase });   
+      } 
+    },
+    
     move: function(value) {
       
       // If no value was passed, then read the value from the HTML
