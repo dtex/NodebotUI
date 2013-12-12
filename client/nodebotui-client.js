@@ -157,7 +157,7 @@ var nodebotui = (function () {
     Servo: {
       min: 0,
       max: 180,
-      "tolerance": 0,
+      tolerance: 0,
       _lastUpdate: -999,
       _methods: ['move'] //, 'center', 'sweep'
     }
@@ -208,7 +208,7 @@ var nodebotui = (function () {
     },
     
     move: function(value) {
-      
+            
       // If no value was passed, then read the value from the HTML
       if (value === null || typeof value === 'undefined') {
         value = Number(document.getElementById(this.id).value);
@@ -228,16 +228,16 @@ var nodebotui = (function () {
       var displayValue = outValue;
       
       // If we have an easing function use it
-      if (this.easing) {
+      if (typeof this.easing !== 'undefined') {
         outValue = easing[this.easing](outValue);
       }
-           
+                 
       // If the board is ready and we've moved more than out tolerance value, then send an update to the server
       if (socket && boards[this._board]._ready && Number(this.tolerance) <= Math.abs(outValue - this._lastUpdate)) { 
         this._lastUpdate = outValue;
-        socket.emit('call', { "board": this._board, "device": this.id, "method": "move", params: outValue });        
+        socket.emit('call', { "board": this._board, "device": this.id, "method": "move", params: outValue, "tolerance": this.tolerance });        
       }
-      
+
       // Update the browserControl
       this._update( displayValue );
     }
@@ -245,121 +245,250 @@ var nodebotui = (function () {
   };
     
   /**
-   * These are browser controls.
-   * Browser controls are inputs or groups of inputs working in concert
-   *
-   * _listen - A function that binds necessary event listeners to the <input> elements
-   */
-  var browserControls = {
-    
-    /**
-     * fieldset data-device-type="orientation"
-     *
-     * A group of two or three ranges
-     **/
-    Orientation: {
-       
-      /**
-       * On deviceorientation check to see if there are inputs for each of the three axes
-       * If so, move that range input
-       **/
-      _listen: function(el, browserControl) {
-        window.addEventListener('deviceorientation', function(event) {
-          _each(['alpha', 'beta', 'gamma'], function (prefix) {
-            if (this[prefix+'Input']) {
-              boards[this._board][this[prefix+'Input']].move(event[prefix]);
-            }
-          }, browserControl);          
-        });
-      },
-      
-      _update: function(alpha, beta, gamma) {
-        //todo
-      },
-      
-      /**
-       * Bind each of the inputs associated with the browser control with
-       * the appropriate axis
-       **/
-      _initialize: function(el, browserControl) {
-        var inputs = document.getElementById(this.id).getElementsByTagName('input');
-        
-        // Loop through all the inputs within this fieldset
-        for (i = 0; i < inputs.length; i++) {
-          
-          if (inputs[i].hasAttribute('data-axis')) { 
-            this[inputs[i].getAttribute('data-axis')+'Input'] = inputs[i].id;
-          }
-          
+ * These are browser controls.
+ * Browser controls are inputs or groups of inputs working in concert
+ *
+ * _listen - A function that binds necessary event listeners to the <input> elements
+ */
+var browserControls = {
+  
+  /**
+ * fieldset data-device-type="deviceOrientation"
+ *
+ * A group of two or three ranges
+ **/
+deviceOrientation: {
+   
+  /**
+   * On deviceorientation check to see if there are inputs for each of the three axes
+   * If so, move that range input
+   **/
+  _listen: function(el, browserControl) {
+    window.addEventListener('deviceorientation', function(event) {
+      _each(['alpha', 'beta', 'gamma'], function (prefix) {
+        if (this[prefix+'Input']) {
+          boards[this._board][this[prefix+'Input']].move(event[prefix]);
         }
-        
-      }
-    },
+      }, browserControl);          
+    });
+  },
+  
+  _update: function(alpha, beta, gamma) {
+    //todo
+  },
+  
+  /**
+   * Bind each of the inputs associated with the browser control with
+   * the appropriate axis
+   **/
+  _initialize: function(el, browserControl) {
+    var inputs = document.getElementById(this.id).getElementsByTagName('input');
     
-    /**
-     * fieldset data-device-type="palmOrientation"
-     * depends on having a leap motion controller
-     *
-     * A group of two or three ranges
-     **/
-    palmOrientation: {
-       
-      /**
-       * On frame check to see if there are inputs for each of the three axes
-       * If so, move that range input
-       **/
-      _listen: function(el, browserControl) {
-        var board = this;
-        this.controller.on('frame', function(frame) {
-          if (frame.hands[0]) {
-            if (board.gammaInput) {
-              boards[board._board][board.gammaInput].move(frame.hands[0].palmNormal[0]);
-            }
-            if (board.alphaInput) {
-              console.log(frame.hands[0].palmNormal[1]);
-              boards[board._board][board.alphaInput].move(frame.hands[0].palmNormal[1]);
-            }
-            if (board.betaInput) {
-              boards[board._board][board.betaInput].move(frame.hands[0].palmNormal[2]);
-            }
-          }
-        });
-        
-      },
+    // Loop through all the inputs within this fieldset
+    for (i = 0; i < inputs.length; i++) {
       
-      _update: function(alpha, beta, gamma) {
-        //todo
-      },
-      
-      /**
-       * Bind each of the inputs associated with the browser control with
-       * the appropriate axis
-       **/
-      _initialize: function(el, browserControl) {
-        
-        this.controller = new Leap.Controller();
-        this.controller.connect();
-        
-        this.controller.on( 'ready' , function(){
-    
-          // Ready code will go here
-    
-        });
-                
-        var inputs = document.getElementById(this.id).getElementsByTagName('input');
-        
-        // Loop through all the inputs within this fieldset
-        for (i = 0; i < inputs.length; i++) {
-          
-          if (inputs[i].hasAttribute('data-axis')) { 
-            this[inputs[i].getAttribute('data-axis')+'Input'] = inputs[i].id;
-          }
-          
-        }
-        
+      if (inputs[i].hasAttribute('data-axis')) { 
+        this[inputs[i].getAttribute('data-axis')+'Input'] = inputs[i].id;
       }
+      
     }
-  };  
+    
+  }
+},
+
+
+/**
+ * fieldset data-device-type="palmOrientation"
+ * depends on having a leap motion controller
+ *
+ * A group of one, two or three ranges
+ **/
+palmNormal: {
+   
+  /**
+   * On frame check to see if there are inputs for each of the three axes
+   * If so, move that range input
+   **/
+  _listen: function(el, browserControl) {
+    var board = this;
+    this.controller.on('frame', function(frame) {
+      if (frame.hands[0]) {
+        if (board.gammaInput) {
+          boards[board._board][board.gammaInput].move(frame.hands[0].palmNormal[0]);
+        }
+        if (board.alphaInput) {
+          boards[board._board][board.alphaInput].move(frame.hands[0].palmNormal[1]);
+        }
+        if (board.betaInput) {
+          boards[board._board][board.betaInput].move(frame.hands[0].palmNormal[2]);
+        }
+      }
+    });
+    
+  },
+  
+  _update: function(alpha, beta, gamma) {
+    //todo
+  },
+  
+  /**
+   * Bind each of the inputs associated with the browser control with
+   * the appropriate axis
+   **/
+  _initialize: function(el, browserControl) {
+    
+    this.controller = new Leap.Controller();
+    this.controller.connect();
+    
+    this.controller.on( 'ready' , function(){
+
+      // Ready code will go here
+
+    });
+            
+    var inputs = document.getElementById(this.id).getElementsByTagName('input');
+    
+    // Loop through all the inputs within this fieldset
+    for (i = 0; i < inputs.length; i++) {
+      
+      if (inputs[i].hasAttribute('data-axis')) { 
+        this[inputs[i].getAttribute('data-axis')+'Input'] = inputs[i].id;
+      }
+      
+    }
+    
+  }
+},
+
+
+/**
+ * fieldset data-device-type="palmPosition"
+ * depends on having a leap motion controller
+ *
+ * A group of one, two or three ranges
+ **/
+palmPosition: {
+   
+  /**
+   * On frame check to see if there are inputs for each of the three axes
+   * If so, move that range input
+   **/
+  _listen: function(el, browserControl) {
+    var board = this;
+    this.controller.on('frame', function(frame) {
+      if (frame.hands[0]) {
+        if (board.gammaInput) {
+          boards[board._board][board.gammaInput].move(frame.hands[0].palmPosition[2]);
+        }
+        if (board.alphaInput) {
+          boards[board._board][board.alphaInput].move(frame.hands[0].palmPosition[1]);
+        }
+        if (board.betaInput) {
+          boards[board._board][board.betaInput].move(frame.hands[0].palmPosition[0]);
+        }
+      }
+    });
+    
+  },
+  
+  _update: function(alpha, beta, gamma) {
+    //todo
+  },
+  
+  /**
+   * Bind each of the inputs associated with the browser control with
+   * the appropriate axis
+   **/
+  _initialize: function(el, browserControl) {
+    
+    this.controller = new Leap.Controller();
+    this.controller.connect();
+    
+    this.controller.on( 'ready' , function(){
+
+      // Ready code will go here
+
+    });
+            
+    var inputs = document.getElementById(this.id).getElementsByTagName('input');
+    
+    // Loop through all the inputs within this fieldset
+    for (i = 0; i < inputs.length; i++) {
+      
+      if (inputs[i].hasAttribute('data-axis')) { 
+        this[inputs[i].getAttribute('data-axis')+'Input'] = inputs[i].id;
+      }
+      
+    }
+    
+  }
+},
+
+
+/**
+ * fieldset data-device-type="stabilizedPalmPosition"
+ * depends on having a leap motion controller
+ *
+ * A group of one, two or three ranges
+ **/
+stabilizedPalmPosition: {
+   
+  /**
+   * On frame check to see if there are inputs for each of the three axes
+   * If so, move that range input
+   **/
+  _listen: function(el, browserControl) {
+    var board = this;
+    this.controller.on('frame', function(frame) {
+      if (frame.hands[0] && frame.hands[0].fingers.length >= 3) {
+        if (board.gammaInput) {
+          boards[board._board][board.gammaInput].move(frame.hands[0].stabilizedPalmPosition[2]);
+        }
+        if (board.alphaInput) {
+          boards[board._board][board.alphaInput].move(frame.hands[0].stabilizedPalmPosition[1]);
+        }
+        if (board.betaInput) {
+          boards[board._board][board.betaInput].move(frame.hands[0].stabilizedPalmPosition[0]);
+        }
+      }
+    });
+    
+  },
+  
+  _update: function(alpha, beta, gamma) {
+    //todo
+  },
+  
+  /**
+   * Bind each of the inputs associated with the browser control with
+   * the appropriate axis
+   **/
+  _initialize: function(el, browserControl) {
+    
+    this.controller = new Leap.Controller();
+    this.controller.connect();
+    
+    this.controller.on( 'ready' , function(){
+
+      // Ready code will go here
+
+    });
+            
+    var inputs = document.getElementById(this.id).getElementsByTagName('input');
+    
+    // Loop through all the inputs within this fieldset
+    for (i = 0; i < inputs.length; i++) {
+      
+      if (inputs[i].hasAttribute('data-axis')) { 
+        this[inputs[i].getAttribute('data-axis')+'Input'] = inputs[i].id;
+      }
+      
+    }
+    
+  }
+}
+  
+};  
   /**
    * These are all the HTML input types we recognize.
    * Inputs can be standalone or grouped under fieldsets to form a browser control.
@@ -451,121 +580,250 @@ var nodebotui = (function () {
   };
     
   /**
-   * These are browser controls.
-   * Browser controls are inputs or groups of inputs working in concert
-   *
-   * _listen - A function that binds necessary event listeners to the <input> elements
-   */
-  var browserControls = {
-    
-    /**
-     * fieldset data-device-type="orientation"
-     *
-     * A group of two or three ranges
-     **/
-    Orientation: {
-       
-      /**
-       * On deviceorientation check to see if there are inputs for each of the three axes
-       * If so, move that range input
-       **/
-      _listen: function(el, browserControl) {
-        window.addEventListener('deviceorientation', function(event) {
-          _each(['alpha', 'beta', 'gamma'], function (prefix) {
-            if (this[prefix+'Input']) {
-              boards[this._board][this[prefix+'Input']].move(event[prefix]);
-            }
-          }, browserControl);          
-        });
-      },
-      
-      _update: function(alpha, beta, gamma) {
-        //todo
-      },
-      
-      /**
-       * Bind each of the inputs associated with the browser control with
-       * the appropriate axis
-       **/
-      _initialize: function(el, browserControl) {
-        var inputs = document.getElementById(this.id).getElementsByTagName('input');
-        
-        // Loop through all the inputs within this fieldset
-        for (i = 0; i < inputs.length; i++) {
-          
-          if (inputs[i].hasAttribute('data-axis')) { 
-            this[inputs[i].getAttribute('data-axis')+'Input'] = inputs[i].id;
-          }
-          
+ * These are browser controls.
+ * Browser controls are inputs or groups of inputs working in concert
+ *
+ * _listen - A function that binds necessary event listeners to the <input> elements
+ */
+var browserControls = {
+  
+  /**
+ * fieldset data-device-type="deviceOrientation"
+ *
+ * A group of two or three ranges
+ **/
+deviceOrientation: {
+   
+  /**
+   * On deviceorientation check to see if there are inputs for each of the three axes
+   * If so, move that range input
+   **/
+  _listen: function(el, browserControl) {
+    window.addEventListener('deviceorientation', function(event) {
+      _each(['alpha', 'beta', 'gamma'], function (prefix) {
+        if (this[prefix+'Input']) {
+          boards[this._board][this[prefix+'Input']].move(event[prefix]);
         }
-        
-      }
-    },
+      }, browserControl);          
+    });
+  },
+  
+  _update: function(alpha, beta, gamma) {
+    //todo
+  },
+  
+  /**
+   * Bind each of the inputs associated with the browser control with
+   * the appropriate axis
+   **/
+  _initialize: function(el, browserControl) {
+    var inputs = document.getElementById(this.id).getElementsByTagName('input');
     
-    /**
-     * fieldset data-device-type="palmOrientation"
-     * depends on having a leap motion controller
-     *
-     * A group of two or three ranges
-     **/
-    palmOrientation: {
-       
-      /**
-       * On frame check to see if there are inputs for each of the three axes
-       * If so, move that range input
-       **/
-      _listen: function(el, browserControl) {
-        var board = this;
-        this.controller.on('frame', function(frame) {
-          if (frame.hands[0]) {
-            if (board.gammaInput) {
-              boards[board._board][board.gammaInput].move(frame.hands[0].palmNormal[0]);
-            }
-            if (board.alphaInput) {
-              console.log(frame.hands[0].palmNormal[1]);
-              boards[board._board][board.alphaInput].move(frame.hands[0].palmNormal[1]);
-            }
-            if (board.betaInput) {
-              boards[board._board][board.betaInput].move(frame.hands[0].palmNormal[2]);
-            }
-          }
-        });
-        
-      },
+    // Loop through all the inputs within this fieldset
+    for (i = 0; i < inputs.length; i++) {
       
-      _update: function(alpha, beta, gamma) {
-        //todo
-      },
-      
-      /**
-       * Bind each of the inputs associated with the browser control with
-       * the appropriate axis
-       **/
-      _initialize: function(el, browserControl) {
-        
-        this.controller = new Leap.Controller();
-        this.controller.connect();
-        
-        this.controller.on( 'ready' , function(){
-    
-          // Ready code will go here
-    
-        });
-                
-        var inputs = document.getElementById(this.id).getElementsByTagName('input');
-        
-        // Loop through all the inputs within this fieldset
-        for (i = 0; i < inputs.length; i++) {
-          
-          if (inputs[i].hasAttribute('data-axis')) { 
-            this[inputs[i].getAttribute('data-axis')+'Input'] = inputs[i].id;
-          }
-          
-        }
-        
+      if (inputs[i].hasAttribute('data-axis')) { 
+        this[inputs[i].getAttribute('data-axis')+'Input'] = inputs[i].id;
       }
+      
     }
-  };  
+    
+  }
+},
+
+
+/**
+ * fieldset data-device-type="palmOrientation"
+ * depends on having a leap motion controller
+ *
+ * A group of one, two or three ranges
+ **/
+palmNormal: {
+   
+  /**
+   * On frame check to see if there are inputs for each of the three axes
+   * If so, move that range input
+   **/
+  _listen: function(el, browserControl) {
+    var board = this;
+    this.controller.on('frame', function(frame) {
+      if (frame.hands[0]) {
+        if (board.gammaInput) {
+          boards[board._board][board.gammaInput].move(frame.hands[0].palmNormal[0]);
+        }
+        if (board.alphaInput) {
+          boards[board._board][board.alphaInput].move(frame.hands[0].palmNormal[1]);
+        }
+        if (board.betaInput) {
+          boards[board._board][board.betaInput].move(frame.hands[0].palmNormal[2]);
+        }
+      }
+    });
+    
+  },
+  
+  _update: function(alpha, beta, gamma) {
+    //todo
+  },
+  
+  /**
+   * Bind each of the inputs associated with the browser control with
+   * the appropriate axis
+   **/
+  _initialize: function(el, browserControl) {
+    
+    this.controller = new Leap.Controller();
+    this.controller.connect();
+    
+    this.controller.on( 'ready' , function(){
+
+      // Ready code will go here
+
+    });
+            
+    var inputs = document.getElementById(this.id).getElementsByTagName('input');
+    
+    // Loop through all the inputs within this fieldset
+    for (i = 0; i < inputs.length; i++) {
+      
+      if (inputs[i].hasAttribute('data-axis')) { 
+        this[inputs[i].getAttribute('data-axis')+'Input'] = inputs[i].id;
+      }
+      
+    }
+    
+  }
+},
+
+
+/**
+ * fieldset data-device-type="palmPosition"
+ * depends on having a leap motion controller
+ *
+ * A group of one, two or three ranges
+ **/
+palmPosition: {
+   
+  /**
+   * On frame check to see if there are inputs for each of the three axes
+   * If so, move that range input
+   **/
+  _listen: function(el, browserControl) {
+    var board = this;
+    this.controller.on('frame', function(frame) {
+      if (frame.hands[0]) {
+        if (board.gammaInput) {
+          boards[board._board][board.gammaInput].move(frame.hands[0].palmPosition[2]);
+        }
+        if (board.alphaInput) {
+          boards[board._board][board.alphaInput].move(frame.hands[0].palmPosition[1]);
+        }
+        if (board.betaInput) {
+          boards[board._board][board.betaInput].move(frame.hands[0].palmPosition[0]);
+        }
+      }
+    });
+    
+  },
+  
+  _update: function(alpha, beta, gamma) {
+    //todo
+  },
+  
+  /**
+   * Bind each of the inputs associated with the browser control with
+   * the appropriate axis
+   **/
+  _initialize: function(el, browserControl) {
+    
+    this.controller = new Leap.Controller();
+    this.controller.connect();
+    
+    this.controller.on( 'ready' , function(){
+
+      // Ready code will go here
+
+    });
+            
+    var inputs = document.getElementById(this.id).getElementsByTagName('input');
+    
+    // Loop through all the inputs within this fieldset
+    for (i = 0; i < inputs.length; i++) {
+      
+      if (inputs[i].hasAttribute('data-axis')) { 
+        this[inputs[i].getAttribute('data-axis')+'Input'] = inputs[i].id;
+      }
+      
+    }
+    
+  }
+},
+
+
+/**
+ * fieldset data-device-type="stabilizedPalmPosition"
+ * depends on having a leap motion controller
+ *
+ * A group of one, two or three ranges
+ **/
+stabilizedPalmPosition: {
+   
+  /**
+   * On frame check to see if there are inputs for each of the three axes
+   * If so, move that range input
+   **/
+  _listen: function(el, browserControl) {
+    var board = this;
+    this.controller.on('frame', function(frame) {
+      if (frame.hands[0] && frame.hands[0].fingers.length >= 3) {
+        if (board.gammaInput) {
+          boards[board._board][board.gammaInput].move(frame.hands[0].stabilizedPalmPosition[2]);
+        }
+        if (board.alphaInput) {
+          boards[board._board][board.alphaInput].move(frame.hands[0].stabilizedPalmPosition[1]);
+        }
+        if (board.betaInput) {
+          boards[board._board][board.betaInput].move(frame.hands[0].stabilizedPalmPosition[0]);
+        }
+      }
+    });
+    
+  },
+  
+  _update: function(alpha, beta, gamma) {
+    //todo
+  },
+  
+  /**
+   * Bind each of the inputs associated with the browser control with
+   * the appropriate axis
+   **/
+  _initialize: function(el, browserControl) {
+    
+    this.controller = new Leap.Controller();
+    this.controller.connect();
+    
+    this.controller.on( 'ready' , function(){
+
+      // Ready code will go here
+
+    });
+            
+    var inputs = document.getElementById(this.id).getElementsByTagName('input');
+    
+    // Loop through all the inputs within this fieldset
+    for (i = 0; i < inputs.length; i++) {
+      
+      if (inputs[i].hasAttribute('data-axis')) { 
+        this[inputs[i].getAttribute('data-axis')+'Input'] = inputs[i].id;
+      }
+      
+    }
+    
+  }
+}
+  
+};  
   /**
    * The following is, ahem, borrowed code
    */
