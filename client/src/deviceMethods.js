@@ -43,7 +43,7 @@
     },
     
     move: function(value) {
-      
+            
       // If no value was passed, then read the value from the HTML
       if (value === null || typeof value === 'undefined') {
         value = Number(document.getElementById(this.id).value);
@@ -63,16 +63,16 @@
       var displayValue = outValue;
       
       // If we have an easing function use it
-      if (this.easing) {
+      if (typeof this.easing !== 'undefined') {
         outValue = easing[this.easing](outValue);
       }
-           
+                 
       // If the board is ready and we've moved more than out tolerance value, then send an update to the server
       if (socket && boards[this._board]._ready && Number(this.tolerance) <= Math.abs(outValue - this._lastUpdate)) { 
         this._lastUpdate = outValue;
-        socket.emit('call', { "board": this._board, "device": this.id, "method": "move", params: outValue });        
+        socket.emit('call', { "board": this._board, "device": this.id, "method": "move", params: outValue, "tolerance": this.tolerance });        
       }
-      
+
       // Update the browserControl
       this._update( displayValue );
     }

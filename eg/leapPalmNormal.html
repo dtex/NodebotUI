@@ -1,20 +1,20 @@
 <head>
-	<title>Labyrinth Example</title>
+	<title>palmNormal Example</title>
 </head>
 
 <body>
 	
 	<form id="sampleBoard" data-device-type="board">
 	
-		<fieldset id="orienter" data-device-type="palmOrientation">
+		<fieldset id="orienter" data-device-type="palmNormal">
 		  
-		  <label for="myXservo">Front/Back Tilt</label>
+		  <label for="myXservo">Front/Back Vector</label>
       <input type="range" id="myXservo" data-device-type="Servo" data-pin="5" data-axis="beta" min="45" max="135" data-thresholds="-0.5, 0.5" data-tolerance="1" />
       
-      <label for="myZservo">Left/Right Tilt</label>
-      <input type="range" id="myZservo" data-device-type="Servo" data-pin="6" data-axis="gamma" min="45" max="145" data-thresholds="-0.5, 0.5" data-tolerance="1" />
+      <label for="myZservo">Left/Right Vector</label>
+      <input type="range" id="myZservo" data-device-type="Servo" data-pin="6" data-inverse="1" data-axis="gamma" min="45" max="145" data-thresholds="-0.5, 0.5" data-tolerance="1" />
       
-      <label for="myYservo">Height</label>
+      <label for="myZservo">Up/Down Vector</label>
       <input type="range" id="myYservo" data-device-type="Servo" data-pin="7" data-axis="alpha" min="45" max="145" data-thresholds="-0.5, 0.5" data-tolerance="1" />
       
 		</fieldset>

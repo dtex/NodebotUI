@@ -2,7 +2,16 @@ module.exports = function(grunt) {
 
 	// Project configuration
 	grunt.initConfig({
-
+		
+		concat: {
+  		  browserControls: {
+        src: ['client/src/browserControls/**/*.js'],
+        dest: 'temp/browserControlsTemp.js',
+        options: {
+          separator:',\n\n\n'
+        }
+      }
+		},
 		replace: {
 			client: {
 				options: {
@@ -27,10 +36,6 @@ module.exports = function(grunt) {
   					replacement: '<%= grunt.file.read("./client/src/inputTypes.js") %>'
   				},
   				{
-    				match: /\/\/ @include browserControls.js/g,
-  					replacement: '<%= grunt.file.read("./client/src/browserControls.js") %>'
-  				},
-  				{
     				match: /\/\/ @include underscoreFunctions.js/g,
   					replacement: '<%= grunt.file.read("./client/src/underscoreFunctions.js") %>'
   				},
@@ -48,6 +53,20 @@ module.exports = function(grunt) {
         files: [
           {expand: true, flatten: true, src: ['./client/src/nodebotui-client.js'], dest: './client'}
         ]
+			},
+			browserControls: {
+				options: {
+  				patterns: [
+  				  {
+    				  match: /\/\/ @include folder BrowserControls/g,
+              replacement: '<%= grunt.file.read("./temp/browserControlsTemp.js") %>'
+            }
+  				],
+  				force: true
+        },
+        files: [
+          {expand: true, flatten: true, src: ['./client/nodebotui-client.js'], dest: './client'}
+        ]
 			}
 		},
 		jshint: {
@@ -59,6 +78,8 @@ module.exports = function(grunt) {
           { src: ['client/nodebotui-client.js'], dest: 'client/nodebotui-client.min.js', filter: 'isFile' }
         ]
       }
+		},
+		cleanup: {
 		}
 		
 	});
@@ -67,7 +88,14 @@ module.exports = function(grunt) {
 	grunt.loadNpmTasks('grunt-replace');
 	grunt.loadNpmTasks('grunt-contrib-jshint');
 	grunt.loadNpmTasks('grunt-contrib-uglify');
+	grunt.loadNpmTasks('grunt-contrib-concat');
+	grunt.registerTask('removeTempDirectory', 'Remove temp directory', function() {
+    grunt.file.delete('temp');
+  });
+  
+	grunt.registerTask('default', ['jshint', 'concat', 'replace:client', 'replace:browserControls', 'uglify', 'removeTempDirectory']);
 	
-	grunt.registerTask('default', ['jshint', 'replace', 'uglify']);
-}
+	
+};
+
 	

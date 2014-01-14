@@ -245,251 +245,6 @@ var nodebotui = (function () {
   };
     
   /**
- * These are browser controls.
- * Browser controls are inputs or groups of inputs working in concert
- *
- * _listen - A function that binds necessary event listeners to the <input> elements
- */
-var browserControls = {
-  
-  /**
- * fieldset data-device-type="deviceOrientation"
- *
- * A group of two or three ranges
- **/
-deviceOrientation: {
-   
-  /**
-   * On deviceorientation check to see if there are inputs for each of the three axes
-   * If so, move that range input
-   **/
-  _listen: function(el, browserControl) {
-    window.addEventListener('deviceorientation', function(event) {
-      _each(['alpha', 'beta', 'gamma'], function (prefix) {
-        if (this[prefix+'Input']) {
-          boards[this._board][this[prefix+'Input']].move(event[prefix]);
-        }
-      }, browserControl);          
-    });
-  },
-  
-  _update: function(alpha, beta, gamma) {
-    //todo
-  },
-  
-  /**
-   * Bind each of the inputs associated with the browser control with
-   * the appropriate axis
-   **/
-  _initialize: function(el, browserControl) {
-    var inputs = document.getElementById(this.id).getElementsByTagName('input');
-    
-    // Loop through all the inputs within this fieldset
-    for (i = 0; i < inputs.length; i++) {
-      
-      if (inputs[i].hasAttribute('data-axis')) { 
-        this[inputs[i].getAttribute('data-axis')+'Input'] = inputs[i].id;
-      }
-      
-    }
-    
-  }
-},
-
-
-/**
- * fieldset data-device-type="palmOrientation"
- * depends on having a leap motion controller
- *
- * A group of one, two or three ranges
- **/
-palmNormal: {
-   
-  /**
-   * On frame check to see if there are inputs for each of the three axes
-   * If so, move that range input
-   **/
-  _listen: function(el, browserControl) {
-    var board = this;
-    this.controller.on('frame', function(frame) {
-      if (frame.hands[0]) {
-        if (board.gammaInput) {
-          boards[board._board][board.gammaInput].move(frame.hands[0].palmNormal[0]);
-        }
-        if (board.alphaInput) {
-          boards[board._board][board.alphaInput].move(frame.hands[0].palmNormal[1]);
-        }
-        if (board.betaInput) {
-          boards[board._board][board.betaInput].move(frame.hands[0].palmNormal[2]);
-        }
-      }
-    });
-    
-  },
-  
-  _update: function(alpha, beta, gamma) {
-    //todo
-  },
-  
-  /**
-   * Bind each of the inputs associated with the browser control with
-   * the appropriate axis
-   **/
-  _initialize: function(el, browserControl) {
-    
-    this.controller = new Leap.Controller();
-    this.controller.connect();
-    
-    this.controller.on( 'ready' , function(){
-
-      // Ready code will go here
-
-    });
-            
-    var inputs = document.getElementById(this.id).getElementsByTagName('input');
-    
-    // Loop through all the inputs within this fieldset
-    for (i = 0; i < inputs.length; i++) {
-      
-      if (inputs[i].hasAttribute('data-axis')) { 
-        this[inputs[i].getAttribute('data-axis')+'Input'] = inputs[i].id;
-      }
-      
-    }
-    
-  }
-},
-
-
-/**
- * fieldset data-device-type="palmPosition"
- * depends on having a leap motion controller
- *
- * A group of one, two or three ranges
- **/
-palmPosition: {
-   
-  /**
-   * On frame check to see if there are inputs for each of the three axes
-   * If so, move that range input
-   **/
-  _listen: function(el, browserControl) {
-    var board = this;
-    this.controller.on('frame', function(frame) {
-      if (frame.hands[0]) {
-        if (board.gammaInput) {
-          boards[board._board][board.gammaInput].move(frame.hands[0].palmPosition[2]);
-        }
-        if (board.alphaInput) {
-          boards[board._board][board.alphaInput].move(frame.hands[0].palmPosition[1]);
-        }
-        if (board.betaInput) {
-          boards[board._board][board.betaInput].move(frame.hands[0].palmPosition[0]);
-        }
-      }
-    });
-    
-  },
-  
-  _update: function(alpha, beta, gamma) {
-    //todo
-  },
-  
-  /**
-   * Bind each of the inputs associated with the browser control with
-   * the appropriate axis
-   **/
-  _initialize: function(el, browserControl) {
-    
-    this.controller = new Leap.Controller();
-    this.controller.connect();
-    
-    this.controller.on( 'ready' , function(){
-
-      // Ready code will go here
-
-    });
-            
-    var inputs = document.getElementById(this.id).getElementsByTagName('input');
-    
-    // Loop through all the inputs within this fieldset
-    for (i = 0; i < inputs.length; i++) {
-      
-      if (inputs[i].hasAttribute('data-axis')) { 
-        this[inputs[i].getAttribute('data-axis')+'Input'] = inputs[i].id;
-      }
-      
-    }
-    
-  }
-},
-
-
-/**
- * fieldset data-device-type="stabilizedPalmPosition"
- * depends on having a leap motion controller
- *
- * A group of one, two or three ranges
- **/
-stabilizedPalmPosition: {
-   
-  /**
-   * On frame check to see if there are inputs for each of the three axes
-   * If so, move that range input
-   **/
-  _listen: function(el, browserControl) {
-    var board = this;
-    this.controller.on('frame', function(frame) {
-      if (frame.hands[0] && frame.hands[0].fingers.length >= 3) {
-        if (board.gammaInput) {
-          boards[board._board][board.gammaInput].move(frame.hands[0].stabilizedPalmPosition[2]);
-        }
-        if (board.alphaInput) {
-          boards[board._board][board.alphaInput].move(frame.hands[0].stabilizedPalmPosition[1]);
-        }
-        if (board.betaInput) {
-          boards[board._board][board.betaInput].move(frame.hands[0].stabilizedPalmPosition[0]);
-        }
-      }
-    });
-    
-  },
-  
-  _update: function(alpha, beta, gamma) {
-    //todo
-  },
-  
-  /**
-   * Bind each of the inputs associated with the browser control with
-   * the appropriate axis
-   **/
-  _initialize: function(el, browserControl) {
-    
-    this.controller = new Leap.Controller();
-    this.controller.connect();
-    
-    this.controller.on( 'ready' , function(){
-
-      // Ready code will go here
-
-    });
-            
-    var inputs = document.getElementById(this.id).getElementsByTagName('input');
-    
-    // Loop through all the inputs within this fieldset
-    for (i = 0; i < inputs.length; i++) {
-      
-      if (inputs[i].hasAttribute('data-axis')) { 
-        this[inputs[i].getAttribute('data-axis')+'Input'] = inputs[i].id;
-      }
-      
-    }
-    
-  }
-}
-  
-};  
-  /**
    * These are all the HTML input types we recognize.
    * Inputs can be standalone or grouped under fieldsets to form a browser control.
    *
@@ -579,15 +334,16 @@ stabilizedPalmPosition: {
     }
   };
     
-  /**
- * These are browser controls.
- * Browser controls are inputs or groups of inputs working in concert
- *
- * _listen - A function that binds necessary event listeners to the <input> elements
- */
-var browserControls = {
   
   /**
+   * These are browser controls.
+   * Browser controls are inputs or groups of inputs working in concert
+   *
+   * _listen - A function that binds necessary event listeners to the <input> elements
+   */
+  var browserControls = {
+    
+    /**
  * fieldset data-device-type="deviceOrientation"
  *
  * A group of two or three ranges
@@ -711,7 +467,7 @@ palmPosition: {
   _listen: function(el, browserControl) {
     var board = this;
     this.controller.on('frame', function(frame) {
-      if (frame.hands[0]) {
+      if (frame.hands[0] && frame.hands[0].fingers.length >= 3) {
         if (board.gammaInput) {
           boards[board._board][board.gammaInput].move(frame.hands[0].palmPosition[2]);
         }
@@ -822,8 +578,66 @@ stabilizedPalmPosition: {
     
   }
 }
+    
+  };
+   
+  /**
+   * Loop through the forms in the web page. For each one that has a 
+   * data-device-type attribute set to "board" we are defining a
+   * a new board to pass to Johnny-Five
+   */
+  function _getBoards() {
+    
+    var boards = {}, forms = document.getElementsByTagName ('form'), i;
+    
+    for (i = 0; i < forms.length; i++) {
+      if (forms[i].getAttribute('data-device-type') === 'board') {
+        boards[forms[i].id] = new Board(forms[i].attributes);
+      }
+    }
+    
+    return boards;
+  }
   
-};  
+  /**
+   * This next part loads the socket.io client script asynchronously
+   * and then fires our _getBoards function
+   **/
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.async = true;
+
+  script.onload = function(){
+      
+      socket = io.connect();
+    
+      socket.on('connect', function () {
+        // tell the server to initialize our new boards
+        console.log('connect');
+        _each(boards, function( board, key) {
+          socket.emit('new board', board );
+        });
+      });
+      
+      // This is where we listen for events from the server
+      socket.on('board ready', function( opts ) {
+        console.log('board ready');
+        boards[opts.id]._ready = true;
+        boards[opts.id].initialize();
+      });
+      
+  };
+
+  // Insert script element for socket.io
+  script.src = 'socket.io/socket.io.js';
+  document.getElementsByTagName('head')[0].appendChild(script);
+  
+  //Initialize boards
+  boards =  _getBoards();
+
+  // assign our boards object to nodebotui global
+  return boards;
+  
   /**
    * The following is, ahem, borrowed code
    */
@@ -914,75 +728,5 @@ _each( baseEasings, function( easeIn, name ) {
     return p < 0.5 ? easeIn( p * 2 ) / 2 : 1 - easeIn( p * -2 + 2 ) / 2;
   };
 });
-   
-  /**
-   * Loop through the forms in the web page. For each one that has a 
-   * data-device-type attribute set to "board" we are defining a
-   * a new board to pass to Johnny-Five
-   */
-  function _getBoards() {
-    
-    var boards = {}, forms = document.getElementsByTagName ('form'), i;
-    
-    for (i = 0; i < forms.length; i++) {
-      if (forms[i].getAttribute('data-device-type') === 'board') {
-        boards[forms[i].id] = new Board(forms[i].attributes);
-      }
-    }
-    
-    return boards;
-  }
-  
-  /**
-   * This next part loads the socket.io client script asynchronously
-   * and then fires our _getBoards function
-   **/
-  var script = document.createElement('script');
-  script.type = 'text/javascript';
-  script.async = true;
-
-  /**
-   * Find the src for this script so we can request socket.io 
-   * from the same server
-   **/
-  var scripts = document.getElementsByTagName('script'), len = scripts.length, re = /nodebotui-client\.js$/, src, nbuiScriptSrc;
-  while (len--) {
-    src = scripts[len].src;
-    if (src && src.match(re)) {
-      nbuiScriptSrc = src;
-      break;
-    }
-  }
-  
-  script.onload = function(){
-      
-      socket = io.connect();
-    
-      socket.on('connect', function () {
-        // tell the server to initialize our new boards
-        console.log('connect');
-        _each(boards, function( board, key) {
-          socket.emit('new board', board );
-        });
-      });
-      
-      // This is where we listen for events from the server
-      socket.on('board ready', function( opts ) {
-        console.log('board ready');
-        boards[opts.id]._ready = true;
-        boards[opts.id].initialize();
-      });
-      
-  };
-
-  // Insert script element for socket.io
-  script.src = 'socket.io/socket.io.js';
-  document.getElementsByTagName('head')[0].appendChild(script);
-  
-  //Initialize boards
-  boards =  _getBoards();
-
-  // assign our boards object to nodebotui global
-  return boards;
    
 })();

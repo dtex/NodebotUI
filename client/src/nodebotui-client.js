@@ -8,11 +8,19 @@ var nodebotui = (function () {
   // @include BrowserControl.js  
   // @include deviceTypes.js  
   // @include deviceMethods.js  
-  // @include browserControls.js  
   // @include inputTypes.js  
-  // @include browserControls.js  
-  // @include underscoreFunctions.js
-  // @include easing.js
+  
+  /**
+   * These are browser controls.
+   * Browser controls are inputs or groups of inputs working in concert
+   *
+   * _listen - A function that binds necessary event listeners to the <input> elements
+   */
+  var browserControls = {
+    
+    // @include folder BrowserControls
+    
+  };
    
   /**
    * Loop through the forms in the web page. For each one that has a 
@@ -40,19 +48,6 @@ var nodebotui = (function () {
   script.type = 'text/javascript';
   script.async = true;
 
-  /**
-   * Find the src for this script so we can request socket.io 
-   * from the same server
-   **/
-  var scripts = document.getElementsByTagName('script'), len = scripts.length, re = /nodebotui-client\.js$/, src, nbuiScriptSrc;
-  while (len--) {
-    src = scripts[len].src;
-    if (src && src.match(re)) {
-      nbuiScriptSrc = src;
-      break;
-    }
-  }
-  
   script.onload = function(){
       
       socket = io.connect();
@@ -83,5 +78,8 @@ var nodebotui = (function () {
 
   // assign our boards object to nodebotui global
   return boards;
+  
+  // @include underscoreFunctions.js
+  // @include easing.js
    
 })();
